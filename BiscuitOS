@@ -1,0 +1,59 @@
+FROM ubuntu:20.04
+MAINTAINER Jiaqi Li "lixsh1130@163.com"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN cp -a /etc/apt/sources.list /etc/apt/sources.list.bak
+RUN sed -i 's@http://.*ubuntu.com@http://repo.huaweicloud.com@g' /etc/apt/sources.list
+
+RUN apt-get update && \
+        apt-get install -y build-essential bash-completion \
+        vim sudo locales time rsync bc python apt-utils \
+        git ssh p7zip unzip net-tools iproute2 tree curl
+        
+
+RUN apt-get update && apt-get install -y \
+        qemu gcc make gdb figlet \
+        libncurses5-dev iasl wget \
+        device-tree-compiler qemu-system-x86 \
+        flex bison libglib2.0-dev \
+        libfdt-dev libpixman-1-dev \
+        pkg-config u-boot-tools intltool xsltproc \
+        gperf libglib2.0-dev libgirepository1.0-dev \
+        gobject-introspection \
+        python2.7-dev python-dev bridge-utils \
+        uml-utilities bear \
+        libattr1-dev libcap-dev \
+        kpartx libsdl2-dev libsdl1.2-dev \
+        debootstrap libarchive-tools \
+        libelf-dev gcc-multilib g++-multilib \
+        libcap-ng-dev binutils-dev \
+        libmount-dev libselinux1-dev libffi-dev libpulse-dev \
+        liblzma-dev libssl-dev \
+        libnuma-dev libnuma1 ninja-build \
+        libtool libsysfs-dev \
+        libtool libmpc-dev \
+        gcc-7 g++-7 \
+        lib32z1-dev
+
+RUN apt-get update && apt-get install -y -f
+
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 20 && \
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 10 && \
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 20 && \
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 10
+
+# language support
+RUN locale-gen en_US.UTF-8
+ENV LANG en_US.UTF-8
+
+# switch to a no-root user
+RUN useradd -c 'damon user' -m -d /home/damon -s /bin/bash damon
+RUN sed -i -e '/\%sudo/ c \%sudo ALL=(ALL) NOPASSWD: ALL' /etc/sudoers
+RUN usermod -a -G sudo damon
+
+USER damon
+WORKDIR /home/damon
+
+# docker run --privileged --mount type=bind,source=/home/damon/biscuitos/BiscuitOS,target=/home/damon/BiscuitOS -it biscuitos /bin/bash
+
